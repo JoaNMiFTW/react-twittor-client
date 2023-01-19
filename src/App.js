@@ -1,21 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SignInSignUp } from "./page/SignInSignUp/SignInSignUp";
 import { ToastContainer } from "react-toastify"
+import { AuthContext } from "./utils/context";
+import { isUserLogedApi } from "./api/auth";
 
 
 export default function App() {
-    const [user, setUser] = useState("asd")
+    const [user, setUser] = useState(null)
+    const [loadUser, setLoadUser] = useState(false)
+    const [refreshCheckLogin, setRefreshCheckLogin] = useState(false)
+
+    useEffect(() => {
+        setUser(isUserLogedApi())
+        setRefreshCheckLogin(false)
+        setLoadUser(true)
+    }, [refreshCheckLogin])
+
+    if(!loadUser) return null
+
 
     return (
-        <div>
+        <AuthContext.Provider value={user}>
             {
                 user ?
                     (
-                        <>
-                            <SignInSignUp />
-                        </>
+                        <h1>Estas logeado</h1>
+
                     ) : (
-                        <h1>No estas logeado</h1>
+                        <>
+                            <SignInSignUp setRefreshCheckLogin={setRefreshCheckLogin} />
+                        </>
                     )
             }
             <ToastContainer
@@ -27,7 +41,7 @@ export default function App() {
                 rtl={false}
                 pauseOnHover
             />
-        </div>
+        </AuthContext.Provider>
     )
 
 }

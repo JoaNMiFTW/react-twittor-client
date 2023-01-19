@@ -10,7 +10,8 @@ import SignUpForm from '../../components/SignUpForm/SignUpForm'
 import "./SignInSignUp.scss"
 import { SignInForm } from '../../components/SignInForm/SignInForm'
 
-export const SignInSignUp = () => {
+export const SignInSignUp = (props) => {
+    const { setRefreshCheckLogin } = props
     const [showModal, setShowModal] = useState(false)
     const [contentModal, setContentModal] = useState(null)
 
@@ -26,7 +27,8 @@ export const SignInSignUp = () => {
                     <LeftComponent />
                     <RightComponent
                         openModal={openModal}
-                        setShowModal={setShowModal} />
+                        setShowModal={setShowModal}
+                        setRefreshCheckLogin={setRefreshCheckLogin} />
                 </Row>
             </Container>
             <BasicModal show={showModal} setShow={setShowModal}>
@@ -59,7 +61,7 @@ function LeftComponent() {
 }
 
 function RightComponent(props) {
-    const { openModal, setShowModal } = props;
+    const { openModal, setShowModal, setRefreshCheckLogin } = props;
 
     return (
         <Col className='signin-signup__right' xs={6}>
@@ -75,7 +77,7 @@ function RightComponent(props) {
                 </Button>
                 <Button
                     variant='outline-primary'
-                    onClick={() => openModal(<SignInForm setShowModal={setShowModal} />)}
+                    onClick={() => openModal(<SignInForm setRefreshCheckLogin={setRefreshCheckLogin} />)}
                 >
                     Iniciar sesión
                 </Button>
