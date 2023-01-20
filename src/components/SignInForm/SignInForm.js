@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Button, Spinner } from "react-bootstrap"
 import { values, size } from "lodash"
-import { toas, toast } from "react-toastify"
+import { toast } from "react-toastify"
 import { isEmailValid } from "../../utils/validations"
 
 import "./SignInForm.scss"
