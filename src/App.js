@@ -25,7 +25,7 @@ export default function App() {
             {
                 user ?
                     (
-                        <Routing />
+                        <Routing setRefreshCheckLogin={setRefreshCheckLogin} />
                     ) : (
                         <>
                             <SignInSignUp setRefreshCheckLogin={setRefreshCheckLogin} />
