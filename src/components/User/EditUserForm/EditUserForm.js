@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react'
-import { Form, Button, Row, Col } from 'react-bootstrap'
+import { Form, Button, Row, Col, Spinner } from 'react-bootstrap'
 import ReactDatePicker from 'react-datepicker'
 import es from "date-fns/locale/es"
 import { useDropzone } from 'react-dropzone'
 import { Camara } from '../../../utils/icons'
 import { uploadBannerApi } from '../../../api/user'
+import { uploadAvatarApi } from '../../../api/user'
+import { updateInfoApi } from '../../../api/user'
 
 import "./EditUserForm.scss"
 import { API_HOST } from '../../../utils/constants'
@@ -12,6 +14,7 @@ import { toast } from 'react-toastify'
 
 export const EditUserForm = (props) => {
     const { user, setShowModal } = props
+
     const [formData, setFormData] = useState(initialValue(user))
     const [bannerUrl, setBannerUrl] = useState(
         user?.banner ? `${API_HOST}/obtenerBanner?id=${user.id}` : null
@@ -19,9 +22,9 @@ export const EditUserForm = (props) => {
     const [avatarUrl, setAvatarUrl] = useState(
         user?.avatar ? `${API_HOST}/obtenerAvatar?id=${user.id}` : null
     )
-
     const [bannerFile, setBannerFile] = useState(null)
     const [avatarFile, setAvatarFile] = useState(null)
+    const [loading, setLoading] = useState(false)
 
     const onDropBanner = useCallback(acceptedFile => {
         const file = acceptedFile[0]
@@ -58,14 +61,30 @@ export const EditUserForm = (props) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const onSubmit = e => {
+    const onSubmit = async (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (bannerFile) {
-            uploadBannerApi(bannerFile).catch(() => {
+            await uploadBannerApi(bannerFile).catch(() => {
                 toast.error("Error al subir el nuevo banner")
             })
         }
+
+        if (avatarFile) {
+            await uploadAvatarApi(avatarFile).catch(() => {
+                toast.error("Error al subir el nuevo avatar")
+            })
+        }
+
+        await updateInfoApi(formData).then(() =>{
+            setShowModal(false)
+        }).catch(() => {
+            toast.error("Error al actualizar los datos")
+        })
+
+        setLoading(false)
+        window.location.reload()
     }
     return (
         <div className='edit-user-form'>
@@ -136,7 +155,10 @@ export const EditUserForm = (props) => {
                         onChange={dateValue => setFormData({ ...formData, fechaNacimiento: dateValue })} />
                 </Form.Group>
 
-                <Button className='btn-submit' variant='primary' type='submit'>Actualizar</Button>
+                <Button className='btn-submit' variant='primary' type='submit'>
+                    {loading && <Spinner animation='border' size='sm' />}
+                    Actualizar
+                </Button>
             </Form>
         </div>
     )
