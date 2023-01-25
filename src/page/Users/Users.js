@@ -8,6 +8,7 @@ import { ListUsers } from '../../components/ListUsers/ListUsers'
 import "./Users.scss"
 import { isEmpty } from 'lodash'
 import { useLocation } from 'react-router-dom'
+import { useDebouncedCallback } from 'use-debounce'
 
 export const Users = (props) => {
     const { setRefreshCheckLogin } = props
@@ -15,14 +16,32 @@ export const Users = (props) => {
     const location = useLocation()
     const params = useUsersQuery(location)
     const [typeUser, setTypeUser] = useState(params.type || "follow")
+    const [btnLoading, setBtnLoading] = useState(false)
+
+    const onSearch = useDebouncedCallback((value) => {
+        setUsers(null)
+        location.search = queryString.stringify({ type: typeUser, page: 1, search: value })
+    }, 500)
 
     useEffect(() => {
         getFollowsApi(queryString.stringify(params)).then(response => {
-            if (isEmpty(response)) {
-                setUsers([])
-            } else {
-                setUsers(response)
+            if(params.page == 1){
+                if (isEmpty(response)) {
+                    setUsers([])
+                } else {
+                    setUsers(response)
+                }
+            }else{
+                if(!response){
+                    setBtnLoading(0)
+                }else{
+                    setUsers([...users, ...response])
+                    setBtnLoading(false)
+                }
             }
+
+
+            
         }).catch(err => {
             setUsers([])
         })
@@ -40,24 +59,34 @@ export const Users = (props) => {
         location.search = queryString.stringify({ type: type, page: 1, search: "" })
     }
 
+    const moreData = () => {
+        setBtnLoading(true)
+        const newPage = parseInt(params.page) + 1
+        location.search = queryString.stringify({ ...params, page: newPage})
+    }
+
 
     return (
         <BasicLayout title="Usuarios" className="users" setRefreshCheckLogin={setRefreshCheckLogin}>
             <div className="users__title">
                 <h2>Usuarios</h2>
-                <input type="search" name="" id="" placeholder='Busca un usuario....' />
+                <input
+                    onChange={(e) => onSearch(e.target.value)}
+                    type="search"
+                    name="" id=""
+                    placeholder='Busca un usuario....' />
             </div>
 
             <ButtonGroup className='users__options'>
-                <Button 
-                className={typeUser === "follow" && "active"}
-                onClick={() => onChangeType("follow")}
+                <Button
+                    className={typeUser === "follow" && "active"}
+                    onClick={() => onChangeType("follow")}
                 >
                     Siguiendo
                 </Button>
-                <Button 
-                className={typeUser === "new" && "active"}
-                onClick={() => onChangeType("new")}
+                <Button
+                    className={typeUser === "new" && "active"}
+                    onClick={() => onChangeType("new")}
                 >
                     Nuevos
                 </Button>
@@ -69,7 +98,22 @@ export const Users = (props) => {
                     Buscando usuarios
                 </div>
             ) : (
-                <ListUsers users={users} />
+                <>
+                    <ListUsers users={users} />
+                    <Button className='load-more' onClick={moreData}>
+                        {!btnLoading ? (
+                            btnLoading !== 0 && "Cargar más usuarios"
+                        ) : (
+                            <Spinner
+                                as='span'
+                                animation='grow'
+                                size='sm'
+                                role='status'
+                                aria-hidden='true'
+                            />
+                        )}
+                    </Button>
+                </>
             )}
         </BasicLayout>
     )
